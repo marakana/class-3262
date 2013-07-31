@@ -1,17 +1,39 @@
 
 package com.marakana.android.yamba;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Activity;
 import android.content.res.Resources;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class StatusActivity extends Activity {
     private static final String TAG = "STATUS";
+
+    Poster poster;
+
+    class Poster extends AsyncTask<String, Void, Integer> {
+
+        @Override
+        protected Integer doInBackground(String... msg) {
+            fakeSend(msg[0]);
+            return Integer.valueOf(R.string.post_succeeded);
+        }
+
+        @Override
+        protected void onPostExecute(Integer result) {
+            poster = null;
+            Toast.makeText(StatusActivity.this, result.intValue(), Toast.LENGTH_LONG).show();
+        }
+    }
 
     private TextView count;
     private EditText status;
@@ -24,42 +46,6 @@ public class StatusActivity extends Activity {
     private int maxStatusLen;
     private int warnMax;
     private int errMax;
-
-    @Override
-    protected void onStart() {
-        Log.d(TAG, "onStart");
-        super.onStart();
-    }
-
-    @Override
-    protected void onRestart() {
-        Log.d(TAG, "onRestart");
-        super.onRestart();
-    }
-
-    @Override
-    protected void onResume() {
-        Log.d(TAG, "onResume");
-        super.onResume();
-    }
-
-    @Override
-    protected void onPause() {
-        Log.d(TAG, "onPause");
-        super.onPause();
-    }
-
-    @Override
-    protected void onStop() {
-        Log.d(TAG, "onStop");
-        super.onStop();
-    }
-
-    @Override
-    protected void onDestroy() {
-        Log.d(TAG, "onDestroy");
-        super.onDestroy();
-    }
 
     @Override
     protected void onCreate(Bundle state) {
@@ -76,6 +62,13 @@ public class StatusActivity extends Activity {
         errMax = rez.getInteger(R.integer.err_max);
 
         setContentView(R.layout.activity_status);
+
+        Button button = (Button) findViewById(R.id.status_submit);
+        button.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View arg0) { post(); }
+                });
 
         count = (TextView) findViewById(R.id.status_count);
         status = (EditText) findViewById(R.id.status_status);
@@ -107,5 +100,23 @@ public class StatusActivity extends Activity {
                 (c == okColor)
                     ? fogColor
                     : (c & 0x0ffffff) | 0x09f7f7f7f);
+    }
+
+    void post() {
+        String msg = status.getText().toString();
+        if (TextUtils.isEmpty(msg)) { return; }
+
+        if (null != poster) { return; }
+        poster = new Poster();
+
+        poster.execute(msg);
+        status.setText("");
+    }
+
+    void fakeSend(String msg) {
+        Log.d(TAG, "Sending: " + msg);
+        try { Thread.sleep(10 * 1000); }
+        catch (InterruptedException e) { }
+        Log.d(TAG, "Sent: " + msg);
     }
 }
