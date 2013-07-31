@@ -17,4 +17,17 @@
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->
     </style>
 
+    <style name="yambaText" parent="android:Widget.Holo.Light.TextView">
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="yambaTextMedium" parent="yambaText">
+        <item name="android:textSize">24sp</item>
+    </style>
+
+    <style name="yambaTextLarge" parent="yambaText">
+        <item name="android:textSize">36sp</item>
+    </style>
+
 </resources>

@@ -2,4 +2,7 @@
 <resources>
     <color name="white">#ffffffff</color>
     <color name="fog">#dddddddd</color>
+    <color name="status_ok">#99FF33</color>
+    <color name="status_warn">#FFFF00</color>
+    <color name="status_err">#FF6666</color>
 </resources>

@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -11,22 +12,21 @@
     tools:context=".StatusActivity" >
 
     <TextView
+        android:id="@+id/status_label"
+        style="@style/yambaTextLarge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:text="@string/status_label"
-        android:textColor="@color/white"
-        android:textSize="36sp"
-        android:textStyle="bold" />
+        android:text="@string/status_label" />
 
     <TextView
         android:id="@+id/status_count"
+        style="@style/yambaText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="right"
         android:text="@string/status_count"
-        android:textColor="@color/white"
-        android:textStyle="bold" />
+        android:textColor="@color/status_ok" />
 
     <EditText
         android:id="@+id/status_status"
@@ -36,15 +36,15 @@
         android:layout_weight="1"
         android:background="@color/fog"
         android:gravity="top|left"
-        android:hint="@string/status_hint" />
+        android:hint="@string/status_hint"
+        android:inputType="textMultiLine|textAutoCorrect" />
 
     <Button
         android:id="@+id/status_submit"
+        style="@style/yambaTextMedium"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:text="@string/status_submit"
-        android:textColor="@color/white"
-        android:textStyle="bold" />
+        android:text="@string/status_submit" />
 
 </LinearLayout>
