@@ -8,8 +8,8 @@
         android:minSdkVersion="15"
         android:targetSdkVersion="18" />
 
-    <uses-permission android:name="android.permission.INTERNET"/>
-    
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:name="com.marakana.android.yamba.YambaApplication"
         android:allowBackup="true"
@@ -27,6 +27,7 @@
         </activity>
 
         <service android:name=".svc.YambaService" />
+
         <provider
             android:name=".data.YambaProvider"
             android:authorities="com.marakana.android.yamba"

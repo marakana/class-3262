@@ -15,7 +15,13 @@
 */
 package com.marakana.android.yamba.svc;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import android.app.AlarmManager;
 import android.app.IntentService;
+import android.app.PendingIntent;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
@@ -24,21 +30,50 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.marakana.android.yamba.R;
+import com.marakana.android.yamba.YambaContract;
 import com.marakana.android.yamba.clientlib.YambaClient;
+import com.marakana.android.yamba.clientlib.YambaClient.Status;
 import com.marakana.android.yamba.clientlib.YambaClientException;
 
 
 public class YambaService extends IntentService {
     private static final String TAG = "SVC";
 
-    private static final int OP_POST_COMPLETE = -1;
+    private static final int POLL_REQ = 42;
+
     private static final String PARAM_STATUS = "YambaService.STATUS";
+    private static final String PARAM_OP = "YambaService.OP";
+    private static final int OP_POST_COMPLETE = -1;
+    private static final int OP_POST = -2;
+    private static final int OP_POLL = -3;
 
     public static void post(Context ctxt, String status) {
         Intent i = new Intent(ctxt, YambaService.class);
+        i.putExtra(PARAM_OP, OP_POST);
         i.putExtra(PARAM_STATUS, status);
         ctxt.startService(i);
     }
+
+    public static void startPolling(Context ctxt) {
+        long pollInterval = 1000 * 60 * ctxt.getResources().getInteger(R.integer.poll_interval);
+        AlarmManager mgr = (AlarmManager) ctxt.getSystemService(Context.ALARM_SERVICE);
+        mgr.setInexactRepeating(
+                AlarmManager.RTC,
+                System.currentTimeMillis() + 100,
+                pollInterval,
+                getPollingIntent(ctxt));
+    }
+
+    private static PendingIntent getPollingIntent(Context ctxt) {
+        Intent i = new Intent(ctxt, YambaService.class);
+        i.putExtra(PARAM_OP, OP_POLL);
+        return PendingIntent.getService(
+                ctxt,
+                POLL_REQ,
+                i,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
 
     private static class Hdlr extends Handler {
         private final YambaService svc;
@@ -55,6 +90,8 @@ public class YambaService extends IntentService {
         }
     }
 
+
+    private int maxPolls;
     private volatile YambaClient client;
     private volatile Hdlr hdlr;
 
@@ -63,6 +100,7 @@ public class YambaService extends IntentService {
     @Override
     public void onCreate() {
         super.onCreate();
+        maxPolls = getResources().getInteger(R.integer.poll_max);
         hdlr = new Hdlr(this);
         client = new YambaClient(
                 "student",
@@ -72,7 +110,26 @@ public class YambaService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent i) {
-        String status = i.getStringExtra(PARAM_STATUS);
+        int op = i.getIntExtra(PARAM_OP, 0);
+        Log.d(TAG, "Handle intent:  " + op);
+        switch (op) {
+            case OP_POST:
+                doPost(i.getStringExtra(PARAM_STATUS));
+                break;
+            case OP_POLL:
+                doPoll();
+                break;
+            default:
+                Log.w(TAG, "Unexpected op: " + op);
+        }
+    }
+
+    private void doPoll() {
+        try { parseTimeline(client.getTimeline(maxPolls)); }
+        catch (Exception e) { Log.w(TAG, "Poll failed: " + e, e); }
+    }
+
+    private void doPost(String status) {
         Log.d(TAG, "Posting: " + status);
         int ret = R.string.post_failed;
         try {
@@ -87,4 +144,23 @@ public class YambaService extends IntentService {
         Message.obtain(hdlr, OP_POST_COMPLETE, ret, 0).sendToTarget();
     }
 
+    private void parseTimeline(List<Status> timeline) {
+        if (null == timeline) { return; }
+
+        List<ContentValues> rows = new ArrayList<ContentValues>();
+        for (Status status: timeline) {
+            ContentValues row = new ContentValues();
+            row.put(
+                    YambaContract.Timeline.Column.ID,
+                    Long.valueOf(status.getId()));
+            row.put(
+                    YambaContract.Timeline.Column.TIMESTAMP,
+                    Long.valueOf(status.getCreatedAt().getTime()));
+            rows.add(row);
+        }
+
+        getContentResolver().bulkInsert(
+                YambaContract.Timeline.URI,
+                rows.toArray(new ContentValues[rows.size()]));
+    }
 }
