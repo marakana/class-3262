@@ -1,39 +1,20 @@
-
 package com.marakana.android.yamba;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Activity;
 import android.content.res.Resources;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
+import com.marakana.android.yamba.svc.YambaService;
 
 public class StatusActivity extends Activity {
     private static final String TAG = "STATUS";
 
-    Poster poster;
-
-    class Poster extends AsyncTask<String, Void, Integer> {
-
-        @Override
-        protected Integer doInBackground(String... msg) {
-            fakeSend(msg[0]);
-            return Integer.valueOf(R.string.post_succeeded);
-        }
-
-        @Override
-        protected void onPostExecute(Integer result) {
-            poster = null;
-            Toast.makeText(StatusActivity.this, result.intValue(), Toast.LENGTH_LONG).show();
-        }
-    }
 
     private TextView count;
     private EditText status;
@@ -85,6 +66,7 @@ public class StatusActivity extends Activity {
             } );
     }
 
+
     void updateCount() {
         int n = maxStatusLen - status.getText().length();
 
@@ -106,17 +88,7 @@ public class StatusActivity extends Activity {
         String msg = status.getText().toString();
         if (TextUtils.isEmpty(msg)) { return; }
 
-        if (null != poster) { return; }
-        poster = new Poster();
-
-        poster.execute(msg);
+        YambaService.post(this, msg);
         status.setText("");
-    }
-
-    void fakeSend(String msg) {
-        Log.d(TAG, "Sending: " + msg);
-        try { Thread.sleep(10 * 1000); }
-        catch (InterruptedException e) { }
-        Log.d(TAG, "Sent: " + msg);
     }
 }
