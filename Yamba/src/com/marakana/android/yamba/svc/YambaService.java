@@ -156,6 +156,8 @@ public class YambaService extends IntentService {
             row.put(
                     YambaContract.Timeline.Column.TIMESTAMP,
                     Long.valueOf(status.getCreatedAt().getTime()));
+            row.put(YambaContract.Timeline.Column.USER, status.getUser());
+            row.put(YambaContract.Timeline.Column.STATUS, status.getMessage());
             rows.add(row);
         }
 
