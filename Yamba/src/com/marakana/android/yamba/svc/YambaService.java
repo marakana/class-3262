@@ -24,6 +24,7 @@ import android.app.PendingIntent;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -55,7 +56,8 @@ public class YambaService extends IntentService {
     }
 
     public static void startPolling(Context ctxt) {
-        long pollInterval = 1000 * 60 * ctxt.getResources().getInteger(R.integer.poll_interval);
+        long pollInterval
+            = 1000 * 60 * ctxt.getResources().getInteger(R.integer.poll_interval);
         AlarmManager mgr = (AlarmManager) ctxt.getSystemService(Context.ALARM_SERVICE);
         mgr.setInexactRepeating(
                 AlarmManager.RTC,
@@ -91,7 +93,7 @@ public class YambaService extends IntentService {
     }
 
 
-    private int maxPolls;
+    private volatile int maxPolls;
     private volatile YambaClient client;
     private volatile Hdlr hdlr;
 
@@ -147,15 +149,18 @@ public class YambaService extends IntentService {
     private void parseTimeline(List<Status> timeline) {
         if (null == timeline) { return; }
 
+        long latest = getMaxTimestamp();
+
         List<ContentValues> rows = new ArrayList<ContentValues>();
         for (Status status: timeline) {
+            long t = status.getCreatedAt().getTime();
+            if (t <= latest) { continue; }
+
             ContentValues row = new ContentValues();
             row.put(
                     YambaContract.Timeline.Column.ID,
                     Long.valueOf(status.getId()));
-            row.put(
-                    YambaContract.Timeline.Column.TIMESTAMP,
-                    Long.valueOf(status.getCreatedAt().getTime()));
+            row.put(YambaContract.Timeline.Column.TIMESTAMP, Long.valueOf(t));
             row.put(YambaContract.Timeline.Column.USER, status.getUser());
             row.put(YambaContract.Timeline.Column.STATUS, status.getMessage());
             rows.add(row);
@@ -164,5 +169,25 @@ public class YambaService extends IntentService {
         getContentResolver().bulkInsert(
                 YambaContract.Timeline.URI,
                 rows.toArray(new ContentValues[rows.size()]));
+    }
+
+
+
+    // select max(timestamp) from timeline;
+    private long getMaxTimestamp() {
+        Cursor c = null;
+        long mx = Long.MIN_VALUE;
+        try {
+            c = getContentResolver().query(
+                    YambaContract.Timeline.URI,
+                    new String[] { YambaContract.Timeline.Column.MAX_TIMESTAMP },
+                    null, null, null);
+            if (c.moveToNext()) { mx = c.getLong(0); }
+        }
+        finally {
+            if (null != c) { c.close(); }
+        }
+
+        return mx;
     }
 }
