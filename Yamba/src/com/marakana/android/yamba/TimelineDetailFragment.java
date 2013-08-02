@@ -32,10 +32,7 @@ public class TimelineDetailFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup root, Bundle state) {
         details = inflater.inflate(R.layout.timeline_detail_fragment, root, false);
 
-        // I'm not sure that this is necessary.
-        // Android should restore the the state, automatically, under some circs.
         setDetails(getArguments());
-
         return details;
     }
 

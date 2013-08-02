@@ -7,7 +7,7 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 
-public class YambaActivity extends Activity {
+public abstract class YambaActivity extends Activity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

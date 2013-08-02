@@ -30,9 +30,9 @@
             android:name=".StatusActivity"
             android:label="@string/app_name" >
         </activity>
-        <activity android:name=".YambaPreferences" >
-        </activity>
-            
+        <activity android:name=".TimelineDetailActivity" />
+        <activity android:name=".YambaPreferences" />
+
         <service android:name=".svc.YambaService" />
 
         <provider
@@ -40,11 +40,13 @@
             android:authorities="com.marakana.android.yamba"
             android:exported="false" />
 
+        <!--
         <receiver android:name=".svc.BootReceiver" >
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
+        -->
     </application>
 
 </manifest>
