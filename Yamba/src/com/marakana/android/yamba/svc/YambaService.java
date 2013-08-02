@@ -66,6 +66,11 @@ public class YambaService extends IntentService {
                 getPollingIntent(ctxt));
     }
 
+    public static void stopPolling(Context ctxt) {
+        AlarmManager mgr = (AlarmManager) ctxt.getSystemService(Context.ALARM_SERVICE);
+        mgr.cancel(getPollingIntent(ctxt));
+    }
+
     private static PendingIntent getPollingIntent(Context ctxt) {
         Intent i = new Intent(ctxt, YambaService.class);
         i.putExtra(PARAM_OP, OP_POLL);
@@ -93,17 +98,17 @@ public class YambaService extends IntentService {
     }
 
 
+    private volatile Hdlr hdlr;
     private volatile int maxPolls;
     private volatile YambaClient client;
-    private volatile Hdlr hdlr;
 
     public YambaService() { super(TAG); }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        maxPolls = getResources().getInteger(R.integer.poll_max);
         hdlr = new Hdlr(this);
+        maxPolls = getResources().getInteger(R.integer.poll_max);
         client = new YambaClient(
                 "student",
                 "password",
@@ -170,8 +175,6 @@ public class YambaService extends IntentService {
                 YambaContract.Timeline.URI,
                 rows.toArray(new ContentValues[rows.size()]));
     }
-
-
 
     // select max(timestamp) from timeline;
     private long getMaxTimestamp() {
