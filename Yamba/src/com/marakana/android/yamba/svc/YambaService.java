@@ -31,8 +31,8 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.marakana.android.yamba.R;
+import com.marakana.android.yamba.YambaApplication;
 import com.marakana.android.yamba.YambaContract;
-import com.marakana.android.yamba.clientlib.YambaClient;
 import com.marakana.android.yamba.clientlib.YambaClient.Status;
 import com.marakana.android.yamba.clientlib.YambaClientException;
 
@@ -100,7 +100,6 @@ public class YambaService extends IntentService {
 
     private volatile Hdlr hdlr;
     private volatile int maxPolls;
-    private volatile YambaClient client;
 
     public YambaService() { super(TAG); }
 
@@ -109,10 +108,6 @@ public class YambaService extends IntentService {
         super.onCreate();
         hdlr = new Hdlr(this);
         maxPolls = getResources().getInteger(R.integer.poll_max);
-        client = new YambaClient(
-                "student",
-                "password",
-                "http://yamba.marakana.com/api");
     }
 
     @Override
@@ -132,7 +127,11 @@ public class YambaService extends IntentService {
     }
 
     private void doPoll() {
-        try { parseTimeline(client.getTimeline(maxPolls)); }
+        try {
+            parseTimeline(
+                ((YambaApplication) getApplication()).getClient()
+                    .getTimeline(maxPolls));
+        }
         catch (Exception e) { Log.w(TAG, "Poll failed: " + e, e); }
     }
 
@@ -140,7 +139,8 @@ public class YambaService extends IntentService {
         Log.d(TAG, "Posting: " + status);
         int ret = R.string.post_failed;
         try {
-            client.postStatus(status);
+            ((YambaApplication) getApplication()).getClient()
+                .postStatus(status);
             ret = R.string.post_succeeded;
             Log.d(TAG, "Post succeeded!");
         }

@@ -30,7 +30,9 @@
             android:name=".StatusActivity"
             android:label="@string/app_name" >
         </activity>
-
+        <activity android:name=".YambaPreferences" >
+        </activity>
+            
         <service android:name=".svc.YambaService" />
 
         <provider
